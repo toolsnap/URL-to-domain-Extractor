@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>URL Domain Extractor</title>
+<!-- Bootstrap CSS -->
+<link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: linear-gradient(to right, #2980B9, #6DD5FA);
+        color: #252525;
+        margin: 0;
+        padding: 0;
+    }
+    .container {
+        padding: 20px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.8);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-top: 5%;
+    }
+    #input-area, #output-area {
+        width: 100%;
+        margin-bottom: 20px;
+    }
+    #output-area {
+        max-height: 150px;
+        overflow-y: auto;
+        border: 1px solid #cfcece;
+        padding: 15px;
+        position: relative;
+        border-radius: 10px;
+        background-color: #fff;
+    }
+    .btn-extract {
+        width: 100%;
+    }
+    .copy-button {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+    }
+    #domain-list p {
+        margin: 0;
+        padding: 0;
+    }
+    .modal-content {
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+    }
+</style>
+</head>
+<body>
+<div class="container">
+    <h2 class="mt-3"><b>URL Domain Extractor</b></h2>
+    <div id="input-area">
+        <label for="url-input" class="mt-3">Enter URLs (one per line):</label>
+        <textarea id="url-input" class="form-control" rows="6"></textarea>
+        <button onclick="extractDomains()" class="btn btn-primary btn-extract mt-3">Extract Domains</button>
+    </div>
+    <div id="output-area">
+        <button onclick="copyDomains()" class="btn btn-secondary copy-button">Copy Domains</button>
+        <p><strong>Extracted Domains:</strong></p>
+        <div id="domain-list"></div>
+    </div>
+</div>
+
+<!-- Bootstrap JS and dependencies -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script>
+function extractDomains() {
+    var urlInput = document.getElementById("url-input").value;
+    var urls = urlInput.split(/\r?\n/);
+    var domainList = document.getElementById("domain-list");
+    domainList.innerHTML = ""; // Clear previous results
+
+    urls.forEach(function(url) {
+        var extracted = extractDomain(url);
+        if (extracted) {
+            var domain = document.createElement("p");
+            domain.textContent = extracted;
+            domainList.appendChild(domain);
+        }
+    });
+}
+
+function extractDomain(url) {
+    var match = url.match(/^https?:\/\/(?:www\.)?([^/]+)/i);
+    if (match) {
+        var domainParts = match[1].split('.');
+        var topLevelDomain = domainParts[domainParts.length - 1];
+        if (topLevelDomain.length <= 4) { // Limiting the TLD to a max length of 4 characters
+            return match[1];
+        }
+    }
+    return null;
+}
+
+function copyDomains() {
+    var domainList = document.getElementById("domain-list");
+    var domains = domainList.innerText.trim();
+    // Remove extra blank lines
+    domains = domains.replace(/^\s*[\r\n]/gm, '');
+    if (domains) {
+        navigator.clipboard.writeText(domains)
+            .then(() => {
+                $('#copySuccessModal').modal('show');
+                setTimeout(function(){
+                    $('#copySuccessModal').modal('hide');
+                }, 3000);
+            })
+            .catch(err => console.error("Error copying domains: ", err));
+    }
+}
+</script>
+
+<!-- Copy Success Modal -->
+<div class="modal fade" id="copySuccessModal" tabindex="-1" role="dialog" aria-labelledby="copySuccessModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-body text-center">
+        <p class="mb-0">Domain copied successfully!</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
